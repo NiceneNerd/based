@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Based: BOTW Assembly Editor</title>
+        <link rel="stylesheet" href="app.css" />
+        <script src="app.js"></script>
+    </head>
+    <body>
+        <div class="group">
+            <div class="group-title">Executable</div>
+            <div class="control">
+                <label for="input-rpx">U-King.rpx to Patch</label>
+                <div class="file">
+                    <input
+                        type="text"
+                        name="input-rpx"
+                        onchange="state.inputRpx = this.value"
+                    />
+                    <button onclick="based.openFile()">Browse...</button>
+                </div>
+            </div>
+            <div class="control">
+                <label for="output-rpx">Patched File Destination</label>
+                <div class="file">
+                    <input
+                        type="text"
+                        name="output-rpx"
+                        onchange="state.outputRpx = this.value"
+                    />
+                    <button onclick="based.saveFile()">Browse...</button>
+                </div>
+            </div>
+        </div>
+        <div class="group">
+            <div class="group-title">Patches</div>
+            <div style="display: flex">
+                <div class="control">
+                    <label for="addr">Address</label>
+                    <input type="text" name="addr" />
+                </div>
+                <div class="control">
+                    <label for="asm">Assembly</label>
+                    <input type="text" name="asm" />
+                </div>
+                <div class="control">
+                    <label>&nbsp;</label>
+                    <button onclick="based.addPatch()">Add Patch</button>
+                </div>
+            </div>
+            <select name="patches" size="10" style="width: 100%">
+                <option value="">No patches yet</option>
+            </select>
+            <button onclick="based.removePatch()">Remove</button>&nbsp;<button>Clear</button>
+        </div>
+        <div class="footer">
+            <button>Apply Patches</button>&nbsp;
+            <button onclick="window.close()">Close</button>
+        </div>
+    </body>
+</html>
