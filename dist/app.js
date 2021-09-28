@@ -69,4 +69,8 @@ window.based = {
     state.patches = [];
     based.renderPatches();
   },
+
+  close: () => {
+    window.__TAURI__.process.exit(0);
+  }
 };
