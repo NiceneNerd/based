@@ -1,6 +1,5 @@
 const dialog = window.__TAURI__.dialog;
-// const invoke = window.__TAURI__.invoke;
-const invoke = async () => "testing";
+const invoke = window.__TAURI__.invoke;
 
 let state = {
   inputRpx: "",
@@ -49,7 +48,7 @@ window.based = {
     }
     const asmText = document.querySelector('[name="asm"]').value;
     try {
-      const asm = await invoke(asmText);
+      const asm = await invoke("validate_patch", { patch: asmText });
       state.patches.push({ addr, asm });
     } catch (error) {
       alert("Invalid assembly: " + asmText + ".\n\n" + error);
@@ -68,6 +67,20 @@ window.based = {
   clearPatches: () => {
     state.patches = [];
     based.renderPatches();
+  },
+
+  applyPatches: async () => {
+      try {
+          await invoke("apply_patches", {
+              input: state.inputRpx,
+              output: state.outputRpx,
+              patches: state.patches
+          });
+      } catch (error) {
+          alert(error);
+          return;
+      }
+      alert("Patch complete!")
   },
 
   close: () => {
