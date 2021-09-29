@@ -62,6 +62,9 @@ fn compress(data: &[u8], output: PathBuf) -> Result<(), String> {
   if !cmd_output.stderr.is_empty() {
     return Err(String::from_utf8_lossy(&cmd_output.stderr).to_string());
   }
+  if let Err(_) = std::fs::remove_file(&tmp_out) {
+    println!("Failed to delete temp file");
+  };
   Ok(())
 }
 
@@ -77,16 +80,19 @@ fn apply_patches(input: String, output: String, patches: Vec<Patch>) -> Result<(
   for patch in patches {
     let address = patch.addr as usize - 0x2000000 + 0x48B5E0;
     let bytes = serde_json::from_str::<Vec<u8>>(&patch.asm).unwrap();
-    data.splice(address..address + 3, bytes);
+    data[address] = bytes[0];
+    data[address + 1] = bytes[1];
+    data[address + 2] = bytes[2];
+    data[address + 3] = bytes[3];
   }
   compress(&data, PathBuf::from(output))?;
   Ok(())
 }
 
 #[tauri::command]
-fn validate_patch(patch: String) -> Result<String, String> {
+fn validate_patch(addr: u64, patch: String) -> Result<String, String> {
   let ks = Keystone::new(Arch::PPC, Mode::BIG_ENDIAN | Mode::MODE_32).unwrap();
-  let result = ks.asm(patch, 0).map_err(|e| format!("{:?}", e))?;
+  let result = ks.asm(patch, addr).map_err(|e| format!("{:?}", e))?;
   Ok(serde_json::to_string(&result.bytes).unwrap())
 }
 

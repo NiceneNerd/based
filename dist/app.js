@@ -48,7 +48,7 @@ window.based = {
     }
     const asmText = document.querySelector('[name="asm"]').value;
     try {
-      const asm = await invoke("validate_patch", { patch: asmText });
+      const asm = await invoke("validate_patch", { addr, patch: asmText });
       state.patches.push({ addr, asm });
     } catch (error) {
       alert("Invalid assembly: " + asmText + ".\n\n" + error);
