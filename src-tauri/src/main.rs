@@ -5,7 +5,7 @@
 use keystone::{Arch, Keystone, Mode};
 use serde::Deserialize;
 use std::{
-  fs::{read, write},
+  fs::{read, read_to_string, write},
   path::PathBuf,
   process::Command,
 };
@@ -32,6 +32,13 @@ fn wiiurpxtool_path() -> PathBuf {
 
 fn get_decompressed_path() -> PathBuf {
   dirs::home_dir().unwrap().join("U-King.elf")
+}
+
+fn parse_cemu_patch(input: &PathBuf) -> Result<Vec<Patch>, String> {
+  let text = read_to_string(&input).map_err(|_| "Failed to read file".to_string())?;
+  for line in text.lines() {}
+  let patches = vec![];
+  Ok(patches)
 }
 
 fn decompress(input: PathBuf) -> Result<(), String> {
