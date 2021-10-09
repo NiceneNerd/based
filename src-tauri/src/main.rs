@@ -2,14 +2,15 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+use anyhow::{anyhow, format_err, Context, Result};
 use ini::inistr;
 use keystone::{Arch, Keystone, Mode};
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
 use std::{
     collections::HashMap,
-    convert::TryInto,
     fs::{read, read_to_string, write},
+    io::{BufWriter, Write},
     path::PathBuf,
     process::Command,
 };
@@ -50,10 +51,9 @@ fn get_decompressed_path() -> PathBuf {
     dirs::home_dir().unwrap().join("U-King.elf")
 }
 
-fn parse_cemu_rules(input: &PathBuf) -> Result<Rules, String> {
+fn parse_cemu_rules(input: &PathBuf) -> Result<Rules> {
     let mut i = 0;
-    let rules_txt: String = read_to_string(input.join("rules.txt"))
-        .map_err(|e| format!("Failed to read rules.txt: {:?}", e))?
+    let rules_txt: String = read_to_string(input.join("rules.txt"))?
         .split("[Preset]")
         .map(|s| s.to_string())
         .intersperse_with(|| {
@@ -62,10 +62,10 @@ fn parse_cemu_rules(input: &PathBuf) -> Result<Rules, String> {
         })
         .collect();
     let rules_ref = &rules_txt;
-    let ini_rules = inistr!(safe rules_ref).map_err(|_| "Failed to parse rules.txt".to_owned())?;
+    let ini_rules = inistr!(safe rules_ref).map_err(|_| anyhow!("Invalid rules.txt"))?;
     let vars: Vec<String> = ini_rules
         .get("default")
-        .ok_or_else(|| "No preset defaults found")?
+        .context("No preset defaults found")?
         .keys()
         .cloned()
         .collect();
@@ -73,48 +73,48 @@ fn parse_cemu_rules(input: &PathBuf) -> Result<Rules, String> {
     for (_, rule) in ini_rules.iter().filter(|(k, _)| k.contains("reset")) {
         let cat = rule
             .get("category")
-            .ok_or_else(|| "Preset missing category field".to_string())?
+            .context("Preset missing category field")?
             .clone()
-            .ok_or_else(|| "Preset category empty".to_string())?;
+            .context("Preset category empty")?;
         if !categories.contains_key(&cat) {
             categories.insert(cat.clone(), vec![]);
         }
         categories.get_mut(&cat).unwrap().push(Preset {
             name: rule
                 .get("name")
-                .ok_or_else(|| "Preset missing name field".to_string())?
+                .context("Preset missing name field")?
                 .clone()
-                .ok_or_else(|| "Preset name empty".to_string())?,
+                .context("Preset name empty")?,
             values: rule
                 .into_iter()
                 .filter(|(k, _)| k.contains('$'))
-                .map(|(k, v)| -> Result<(String, Number), String> {
+                .map(|(k, v)| -> Result<(String, Number)> {
                     let int = k.ends_with(":int");
-                    let var = k.trim_end_matches(":int");
-                    let v = v.clone().ok_or_else(|| "No variable value".to_string())?;
-                    let value: Number =
-                        serde_json::from_str(&v).or_else(|_| -> Result<Number, String> {
-                            Ok(if int {
+                    let v = v.clone().context("No variable value")?;
+                    let value: Number = match serde_json::from_str(&v) {
+                        Ok(v) => v,
+                        Err(_) => {
+                            if int {
                                 Number::from(
-                                    meval::eval_str(&v).map_err(|_| "Invalid variable value")?
-                                        as i32,
+                                    meval::eval_str(&v).context("Invalid variable value")? as i32,
                                 )
                             } else {
                                 Number::from_f64(
-                                    meval::eval_str(&v).map_err(|_| "Invalid variable value")?,
+                                    meval::eval_str(&v).context("Invalid variable value")?,
                                 )
                                 .unwrap()
-                            })
-                        })?;
-                    Ok((var.to_owned(), value))
+                            }
+                        }
+                    };
+                    Ok((k.to_owned(), value))
                 })
-                .collect::<Result<HashMap<String, Number>, String>>()?,
+                .collect::<Result<HashMap<String, Number>>>()?,
         });
     }
     Ok(Rules { vars, categories })
 }
 
-fn decompress(input: PathBuf) -> Result<(), String> {
+fn decompress(input: PathBuf) -> Result<()> {
     let decompressed = get_decompressed_path();
     if !decompressed.exists() {
         let output = Command::new(&wiiurpxtool_path())
@@ -124,9 +124,9 @@ fn decompress(input: PathBuf) -> Result<(), String> {
                 decompressed.to_str().unwrap(),
             ])
             .output()
-            .map_err(|e| format!("Failed to decompress RPX: {:?}", e))?;
+            .map_err(|e| format_err!("Failed to decompress RPX: {:?}", e))?;
         if !output.stderr.is_empty() {
-            return Err(String::from_utf8_lossy(&output.stderr).to_string());
+            return Err(format_err!("{}", String::from_utf8_lossy(&output.stderr)));
         }
     }
     Ok(())
@@ -149,12 +149,27 @@ fn compress(data: &[u8], output: PathBuf) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn create_patches(output: String, patches: Vec<Patch>) -> Result<(), String> {
+    let write_patches = || -> Result<()> {
+        let mut writer = BufWriter::new(std::fs::File::create(&output)?);
+        writer.write(&(patches.len() as u16).to_be_bytes())?;
+        for patch in patches {
+            writer.write(&4u16.to_be_bytes())?;
+            writer.write(&(patch.addr + 0xA900000).to_be_bytes())?;
+            writer.write(&serde_json::from_str::<Vec<u8>>(&patch.asm).unwrap())?;
+        }
+        Ok(())
+    };
+    write_patches().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn apply_patches(input: String, output: String, patches: Vec<Patch>) -> Result<(), String> {
     let input = PathBuf::from(input);
     if !input.exists() {
         return Err("Input RPX does not exist".into());
     }
-    decompress(input)?;
+    decompress(input).map_err(|e| e.to_string())?;
     let mut data = read(get_decompressed_path()).map_err(|e| format!("{:?}", e))?;
     for patch in patches {
         let address = patch.addr as usize - 0x2000000 + 0x48B5E0;
@@ -177,7 +192,11 @@ fn validate_patch(addr: u64, patch: String) -> Result<String, String> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![validate_patch, apply_patches])
+        .invoke_handler(tauri::generate_handler![
+            validate_patch,
+            apply_patches,
+            create_patches
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

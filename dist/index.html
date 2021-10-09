@@ -50,12 +50,15 @@
             <select name="patches" size="10" style="width: 100%">
                 <option value="">No patches yet</option>
             </select>
-            <button onclick="based.removePatch()">Remove</button>&nbsp;
-            <button onclick="based.clearPatches()">Clear</button>
+            <div class="button-bar">
+                <button onclick="based.removePatch()">Remove</button>
+                <button onclick="based.clearPatches()">Clear</button>
+            </div>
         </div>
-        <div class="footer">
-            <button onclick="based.applyPatches()">Apply Patches</button>&nbsp;
+        <div class="footer button-bar">
             <button onclick="based.close()">Close</button>
+            <button onclick="based.createPatchesFile()">Create Patches.hax</button>
+            <button onclick="based.applyPatches()">Apply Patches</button>
         </div>
     </body>
 </html>

@@ -1,10 +1,10 @@
 :root {
     --window: #f0f0f0;
     --buttonMain: #fff;
-    --buttonHover: #B9D1EA;
+    --buttonHover: #b9d1ea;
     --border: #e3e3e3;
-    --buttonBorderFocus: #3399FF;
-    --shadow: #B4B4B4;
+    --buttonBorderFocus: #3399ff;
+    --shadow: #b4b4b4;
 }
 
 html,
@@ -51,7 +51,24 @@ button:active {
     border-color: var(--border);
 }
 
-input[type="text"], select {
+.button-bar {
+    display: flex;
+}
+
+.button-bar button {
+    margin: 0 2.5pt;
+}
+
+.button-bar button:last-child {
+    margin: 0 0 0 2.5pt;
+}
+
+.button-bar button:first-child {
+    margin: 0 2.5pt 0 0;
+}
+
+input[type="text"],
+select {
     border: 1px solid var(--border);
     border-radius: 2pt;
     box-shadow: 0px 1px 1px 0px var(--shadow);
@@ -96,7 +113,6 @@ select {
 }
 
 .footer {
-    display: flex;
-    flex-direction: row-reverse;
+    margin-left: auto;
     padding: 5pt;
 }

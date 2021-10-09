@@ -1,5 +1,10 @@
 {
     "python.formatting.provider": "black",
     "editor.formatOnSave": true,
-    "editor.tabSize": 4
+    "editor.tabSize": 4,
+    "prettier.arrowParens": "avoid",
+    "prettier.jsxBracketSameLine": true,
+    "prettier.printWidth": 88,
+    "prettier.tabWidth": 4,
+    "prettier.trailingComma": "none"
 }
