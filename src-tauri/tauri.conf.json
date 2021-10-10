@@ -52,17 +52,24 @@
                 "width": 575,
                 "height": 500,
                 "resizable": true,
-                "fullscreen": false
+                "fullscreen": false,
+                "x": 145,
+                "y": 145
             },
             {
                 "title": "Preset Select",
                 "width": 256,
                 "height": 427,
+                "alwaysOnTop": true,
+                "focus": true,
                 "fullscreen": false,
                 "label": "presets",
                 "resizable": false,
+                "skipTaskbar": true,
                 "url": "presets.html",
-                "visible": false
+                "visible": false,
+                "x": 290,
+                "y": 290
             }
         ],
         "security": {

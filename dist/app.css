@@ -91,6 +91,7 @@ select {
     margin-top: -12.5pt;
     margin-left: -2.5pt;
     padding: 0 1pt;
+    width: fit-content;
 }
 
 .control {

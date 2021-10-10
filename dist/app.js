@@ -110,22 +110,31 @@ window.based = {
         alert("Patch file created!");
     },
 
-    loadCemuPatch: async () => {
+    importPatch: async () => {
         const file = await dialog.open({
             filters: [
                 {
                     name: "Cemu rules.txt",
                     extensions: ["txt"]
+                },
+                {
+                    name: "CafeLoader Patches.hax",
+                    extensions: ["hax"]
                 }
             ]
         });
         if (!file) return;
-        const presets = await invoke("parse_rules", {
-            input: file
-        });
-        if (presets.vars.length > 0) await invoke("open_presets", { presets });
-        else {
-            const patches = await invoke("parse_patches", { input: file });
+        if (file.endsWith("txt")) {
+            const presets = await invoke("parse_rules", {
+                input: file
+            });
+            if (presets.vars.length > 0) await invoke("open_presets", { presets });
+            else {
+                const patches = await invoke("parse_patches", { input: file });
+                based.updatePatches(JSON.stringify(patches));
+            }
+        } else if (file.endsWith("hax")) {
+            const patches = await invoke("parse_hax", { input: file });
             based.updatePatches(JSON.stringify(patches));
         }
     },

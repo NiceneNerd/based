@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 use anyhow::{anyhow, format_err, Context, Result};
+use binread::{BinRead, BinReaderExt};
 use ini::inistr;
 use keystone::{Arch, Keystone, Mode};
 use serde::{Deserialize, Serialize};
@@ -33,6 +34,21 @@ struct Rules {
     path: String,
     vars: Vec<String>,
     categories: HashMap<String, Vec<Preset>>,
+}
+
+#[derive(Debug, BinRead)]
+#[br(assert(_size == 4))]
+struct HaxPatch {
+    _size: u16,
+    addr: u32,
+    bytes: [u8; 4],
+}
+
+#[derive(Debug, BinRead)]
+struct HaxFile {
+    _count: u16,
+    #[br(count = _count)]
+    patches: Vec<HaxPatch>,
 }
 
 fn wiiurpxtool_path() -> PathBuf {
@@ -290,6 +306,26 @@ fn parse_patches(input: &Path, presets: Option<Value>) -> Result<Value, String> 
 }
 
 #[tauri::command]
+fn parse_hax(input: &str) -> Result<Value, String> {
+    let parse = || -> Result<Value> {
+        let mut data = std::io::Cursor::new(std::fs::read(input)?);
+        let hax: HaxFile = data.read_be()?;
+        Ok(Value::Array(
+            hax.patches
+                .iter()
+                .map(|p| {
+                    Ok(json!({
+                        "addr": p.addr - 0xA900000,
+                        "asm": serde_json::to_string(&p.bytes)?
+                    }))
+                })
+                .collect::<Result<Vec<Value>>>()?,
+        ))
+    };
+    parse().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn update_patches(window: tauri::Window, patches: Value) -> Result<(), String> {
     window
         .get_window("main")
@@ -320,6 +356,7 @@ fn main() {
             parse_rules,
             open_presets,
             parse_patches,
+            parse_hax,
             update_patches
         ])
         .run(tauri::generate_context!())

@@ -2,11 +2,12 @@ const dialog = window.__TAURI__.dialog;
 const invoke = window.__TAURI__.invoke;
 const tauriWin = window.__TAURI__.window;
 
+tauriWin.getCurrent().setIcon([]);
+
 window.presets = {
     state: {},
 
     render: rules => {
-        console.log(rules);
         presets.state = {};
         presets.state.path = rules.path;
         let presetList = document.getElementById("preset-list");
