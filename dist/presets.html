@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Based: BOTW Assembly Editor</title>
+        <link rel="stylesheet" href="app.css" />
+        <script src="presets.js"></script>
+    </head>
+    <body>
+        <div class="group">
+            <div class="group-title">Preset Selection</div>
+            <div id="preset-list"></div>
+        </div>
+        <div class="footer button-bar">
+            <div style="flex-grow: 1"></div>
+            <button onclick="presets.close()">Close</button>
+            <button id="submit" disabled onclick="presets.submit()">OK</button>
+        </div>
+    </body>
+</html>

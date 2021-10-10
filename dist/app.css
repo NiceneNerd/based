@@ -11,9 +11,8 @@ html,
 body {
     background-color: var(--window);
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-        "Helvetica Neue", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     font-size: 10pt;
     margin: 0;
     padding: 0;
@@ -92,7 +91,6 @@ select {
     margin-top: -12.5pt;
     margin-left: -2.5pt;
     padding: 0 1pt;
-    width: min-content;
 }
 
 .control {
@@ -112,7 +110,10 @@ select {
     flex-grow: 1;
 }
 
+#preset-list {
+    margin-top: 5pt;
+}
+
 .footer {
-    margin-left: auto;
     padding: 5pt;
 }

@@ -1,7 +1,7 @@
 {
     "package": {
         "productName": "Based",
-        "version": "0.1.0"
+        "version": "0.2.0"
     },
     "build": {
         "distDir": "../dist",
@@ -53,6 +53,16 @@
                 "height": 500,
                 "resizable": true,
                 "fullscreen": false
+            },
+            {
+                "title": "Preset Select",
+                "width": 256,
+                "height": 427,
+                "fullscreen": false,
+                "label": "presets",
+                "resizable": false,
+                "url": "presets.html",
+                "visible": false
             }
         ],
         "security": {
