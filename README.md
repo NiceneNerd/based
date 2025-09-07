@@ -4,8 +4,7 @@ Simple tool to create code patches for *The Legend of Zelda: Breath of the Wild*
 
 ## Setup
 
-Supports Windows and most modern Linux distros. On Windows, requires the
-[WebView2 runtime](https://go.microsoft.com/fwlink/p/?LinkId=2124703).
+Supports Windows and most modern Linux distros. Based now uses native GUI widgets through WxDragon for better performance and native look and feel.
 
 - Download the latest release for your platform
 - Extract wherever you want
